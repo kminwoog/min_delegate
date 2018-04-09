@@ -33,6 +33,26 @@ If you use `min_delegate`
 * It increases readibility in a way.
 * It can reduce the possibility of errors.
 
+```elixir
+defmodule SimpleServer do
+  use GenServer
+  
+  @type [:call]
+  @state :state
+  min_delegate add_value(value, state) do
+    { :reply, value, [value | state] }
+  end
+end
+
+defmodule SimpleServerTest do
+  test "min_delegate" do
+    { :ok, pid } = GenServer.start_link(SimpleServer, [], [])
+    assert(SimpleServer.add_value(pid, :call, 10003) == 10003)
+    assert(SimpleServer.call_add_value(pid, 10003) == 10003)
+  end
+end
+```
+
 In summary, when you use gen_server, can define and use it quickly.
 
 
