@@ -36,9 +36,9 @@ If you use `min_delegate`
 ```elixir
 defmodule SimpleServer do
   use GenServer
+  use MinDelegate
   
   @type [:call]
-  @state :state
   min_delegate add_value(value, state) do
     { :reply, value, [value | state] }
   end
