@@ -27,6 +27,14 @@ defmodule SimpleServer do
 end
 ```
 
+If you use `min_delegate`
+
+* It can reduce the functions that always define in two pair to one.
+* It increases readibility in a way.
+* It can reduce the possibility of errors.
+
+In summary, when you use gen_server, can define and use it quickly.
+
 
 ## Installation
 
