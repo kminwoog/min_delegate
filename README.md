@@ -38,7 +38,7 @@ defmodule SimpleServer do
   use GenServer
   use MinDelegate
   
-  @type [:call]
+  @type :call
   min_delegate add_value(value, state) do
     { :reply, value, [value | state] }
   end
@@ -47,8 +47,7 @@ end
 defmodule SimpleServerTest do
   test "min_delegate" do
     { :ok, pid } = GenServer.start_link(SimpleServer, [], [])
-    assert(SimpleServer.add_value(pid, :call, 10003) == 10003)
-    assert(SimpleServer.call_add_value(pid, 10003) == 10003)
+    assert(SimpleServer.add_value(pid, 10003) == 10003)
   end
 end
 ```
