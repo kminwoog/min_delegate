@@ -9,21 +9,21 @@ If you often use GenServer, define and implement the function as shown in the fo
 ```elixir
 defmodule SimpleServer do
   use GenServer
-  
+
   ### GenServer Initializations
-  def init(_state), do: {:ok, []} 
+  def init(_state), do: {:ok, []}
   def start_link(state \\ []) do
     GenServer.start_link(__MODULE__, state, name: __MODULE__)
   end
-  
+
   ### APIs for caller
   def add_value(value), do: GenServer.call(__MODULE__, {:add_value, value})
-  
+
   @doc """
   GenServer.handle_call/3 callback
   """
   def handle_call({:add_value, value}, _from, state), do: {:reply, value, [value | state]}
-  
+
 end
 ```
 
@@ -37,10 +37,16 @@ If you use `min_delegate`
 defmodule SimpleServer do
   use GenServer
   use MinDelegate
-  
-  @type :call
+
+  @gen_call :call
   min_delegate add_value(value, state) do
     { :reply, value, [value | state] }
+  end
+
+  @gen_call :cast
+  @gen_state :data
+  min_delegate add_value(value, data) do
+    { :noreply, [value | data] }
   end
 end
 
