@@ -34,7 +34,7 @@ If you use `min_delegate`
 * It can reduce the possibility of errors.
 
 ```elixir
-defmodule SimpleServer do
+defmodule MinDelegateQ do
   use GenServer
   use MinDelegate
 
@@ -45,15 +45,26 @@ defmodule SimpleServer do
 
   @gen_call :cast
   @gen_state :data
-  min_delegate add_value(value, data) do
+  min_delegate add_value_cast(value, data) do
     { :noreply, [value | data] }
+  end
+
+  @gen_call :call
+  min_delegate count(value, state) do
+    { :reply, length(value), state }
   end
 end
 
-defmodule SimpleServerTest do
+defmodule MinDelegateTest do
+  use ExUnit.Case
+
+  @moduletag :min_delegate
+
   test "min_delegate" do
-    { :ok, pid } = GenServer.start_link(SimpleServer, [], [])
-    assert(SimpleServer.add_value(pid, 10003) == 10003)
+    { :ok, pid } = GenServer.start_link(MinDelegateQ, [], [])
+    assert(MinDelegateQ.add_value(pid, 10003) == 10003)
+    MinDelegateQ.add_value_caet(pid, 10004)
+    assert(MinDelegateQ.count(pid) == 2)
   end
 end
 ```
