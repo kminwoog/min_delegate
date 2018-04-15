@@ -38,19 +38,16 @@ defmodule MinDelegateQ do
   use GenServer
   use MinDelegate
 
-  @gen_call :call
-  min_delegate add_value(value, state) do
+  defcall add_value(value, state) do
     { :reply, value, [value | state] }
   end
 
-  @gen_call :cast
   @gen_state :data
-  min_delegate add_value_cast(value, data) do
+  defcast add_value_cast(value, data) do
     { :noreply, [value | data] }
   end
 
-  @gen_call :call
-  min_delegate count(value, state) do
+  defcall count(value, state) do
     { :reply, length(value), state }
   end
 end
@@ -74,4 +71,14 @@ In summary, when you use gen_server, can define and use it quickly.
 
 ## Installation
 
+If [available in Hex](https://hex.pm/docs/publish), the package can be installed
+by adding `min_delegate` to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [
+    {:min_delegate, "~> 0.1.0"}
+  ]
+end
+```
 ## Usage
