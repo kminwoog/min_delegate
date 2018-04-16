@@ -38,30 +38,47 @@ defmodule MinDelegateQ do
   use GenServer
   use MinDelegate
 
-  defcall add_value(value, state) do
-    { :reply, value, [value | state] }
+  def init(_state), do: {:ok, []}
+
+  def start_link(state \\ []) do
+    GenServer.start_link(__MODULE__, state, name: __MODULE__)
   end
 
-  @gen_state :data
-  defcast add_value_cast(value, data) do
-    { :noreply, [value | data] }
+  @alias :data
+  defcall add_value(value, data) do
+    data = [value | data]
+    {:reply, data, data}
   end
 
-  defcall count(value, state) do
-    { :reply, length(value), state }
+  defcast add_value_cast(value, state) do
+    {:noreply, [value | state]}
+  end
+
+  defcall count(state) do
+    {:reply, length(state), state}
+  end
+
+  definfo add_value_info(value, state) do
+    { :noreply, [value | state] }
   end
 end
 
 defmodule MinDelegateTest do
   use ExUnit.Case
 
-  @moduletag :min_delegate
-
   test "min_delegate" do
-    { :ok, pid } = GenServer.start_link(MinDelegateQ, [], [])
-    assert(MinDelegateQ.add_value(pid, 10003) == 10003)
-    MinDelegateQ.add_value_caet(pid, 10004)
-    assert(MinDelegateQ.count(pid) == 2)
+    {:ok, pid} = GenServer.start_link(MinDelegateQ, [], [])
+    ret = MinDelegateQ.add_value(pid, 4)
+    assert(ret == [4])
+    ret = MinDelegateQ.add_value(pid, 1)
+    assert(ret == [1, 4])
+    MinDelegateQ.add_value_cast(pid, 2)
+    ret = MinDelegateQ.add_value(pid, 3)
+    assert(ret == [3, 2, 1, 4])
+    MinDelegateQ.add_value_info(pid, 7)
+    ret = MinDelegateQ.add_value(pid, 8)
+    assert(ret == [8, 7, 3, 2, 1, 4])
+    assert(MinDelegateQ.count(pid) == 6)
   end
 end
 ```
