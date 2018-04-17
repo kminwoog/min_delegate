@@ -1,6 +1,6 @@
 min_delegate
 ========
-[![Hex.pm Version](https://img.shields.io/hexpm/v/min_delegate.svg)](https://hex.pm/packages/min_delegate)
+[![Build Status](https://travis-ci.org/kminwoog/min_delegate.svg?branch=master)](https://travis-ci.org/kminwoog/min_delegate) [![Hex.pm Version](https://img.shields.io/hexpm/v/min_delegate.svg)](https://hex.pm/packages/min_delegate)
 
 Helps you to easily define call and cast, info functions when using gen_server in elixir
 
