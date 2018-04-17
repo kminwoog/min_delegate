@@ -1,5 +1,8 @@
 min_delegate
 ========
+
+[![Hex.pm](https://img.shields.io/hexpm/v/plug.svg)](https://hex.pm/packages/min_delegate)
+
 Helps you to easily define call and cast, info functions when using gen_server for elixir
 
 ## Overview
@@ -27,7 +30,7 @@ defmodule SimpleServer do
 end
 ```
 
-If you use `min_delegate`
+If you are using `min_delegate`
 
 * It can reduce the functions that always define in two pair to one.
 * It increases readibility in a way.
@@ -83,7 +86,7 @@ defmodule MinDelegateTest do
 end
 ```
 
-In summary, when you use gen_server, can define and use it quickly.
+In summary, when use gen_server, can define and use it quickly.
 
 
 ## Installation
@@ -98,4 +101,82 @@ def deps do
   ]
 end
 ```
+
+Then, run the following command to install
+
+```sh
+$ mix deps.get
+```
 ## Usage
+
+### :call method
+
+
+```elixir
+# define gen_server :call api
+defcall your_func_name(arg0, arg1, arg2, state) do
+  return = 1
+  {reply, return, state}
+end
+```
+
+```elixir
+# after expanding macro
+def your_func_name(pid, arg0, arg1, arg2) do
+  GenServer.call(pid, {:your_func_name, arg0, arg1, arg2})
+end
+
+def handle_call({:your_func_name, arg0, arg1, arg2}, _from, state) do
+  return = 1
+  {:reply, return, state}
+end
+```
+
+### :cast method
+
+It's similar with `:call` api.
+
+
+### :info method
+
+```elixir
+# define gen_server :info api
+definfo your_func_name(arg0, state) do
+  state = put_in(state[:value], 2)
+  {:noreply, state}
+end
+```
+
+```elixir
+# after expanding macro
+def your_func_name(pid, arg0, delay \\ 0) do
+  if delay > 0 do
+    Process.send_after(pid, {:your_func_name, arg0}, delay)
+  else
+    send(pid, {:your_func_name, arg0})
+  end
+end
+
+def handle_info({:your_func_name, arg0}, state) do
+  state = put_in(state[:value], 2)
+  {:noreply, state}
+end
+```
+
+#### @alias
+
+Use `@alias` attribute to specify another name, not `state`
+
+```elixir
+@alias some
+defcall your_func_name(arg0, arg1, some) do
+  some = put_in(some[0], arg0)
+  some = put_in(some[1], arg1)
+  {reply, return, some}
+end
+```
+
+
+#### @whereis
+
+Not yet implemented
