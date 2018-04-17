@@ -61,7 +61,7 @@ defmodule MinDelegateQ do
   end
 
   definfo add_value_info(value, state) do
-    { :noreply, [value | state] }
+    {:noreply, [value | state] }
   end
 end
 
@@ -115,7 +115,7 @@ $ mix deps.get
 # define gen_server :call api
 defcall your_func_name(arg0, arg1, arg2, state) do
   return = 1
-  {reply, return, state}
+  {:reply, return, state}
 end
 ```
 
@@ -171,7 +171,7 @@ Use `@alias` attribute to specify another name, not `state`
 defcall your_func_name(arg0, arg1, some) do
   some = put_in(some[0], arg0)
   some = put_in(some[1], arg1)
-  {reply, return, some}
+  {:reply, return, some}
 end
 ```
 
