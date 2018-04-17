@@ -3,7 +3,7 @@ min_delegate
 
 [![Hex.pm](https://img.shields.io/hexpm/v/plug.svg)](https://hex.pm/packages/min_delegate)
 
-Helps you to easily define call and cast, info functions when using gen_server for elixir
+Helps you to easily define call and cast, info functions when using gen_server in elixir
 
 ## Overview
 
@@ -163,7 +163,7 @@ def handle_info({:your_func_name, arg0}, state) do
 end
 ```
 
-#### @alias
+#### @alias attribute
 
 Use `@alias` attribute to specify another name, not `state`
 
@@ -177,6 +177,6 @@ end
 ```
 
 
-#### @whereis
+#### @whereis attribute
 
 Not yet implemented
