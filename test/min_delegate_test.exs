@@ -19,3 +19,42 @@ defmodule MinDelegateTest do
     assert(MinDelegateQ.count(pid) == 6)
   end
 end
+
+defmodule MinDelegateQ do
+  @moduledoc """
+  Simple queue for testing min_delegate
+  """
+
+  use GenServer
+  use MinDelegate
+
+  ### GenServer Initializations
+  def init(_state), do: {:ok, []}
+
+  def start_link(state \\ []) do
+    GenServer.start_link(__MODULE__, state, name: __MODULE__)
+  end
+
+  @alias :data
+  defcall add_value(value, data) do
+    data = [value | data]
+    {:reply, data, data}
+  end
+
+  defcast add_value_cast(value, state) do
+    {:noreply, [value | state]}
+  end
+
+  defcall count(state) do
+    {:reply, length(state), state}
+  end
+
+  # #@whereis &whereis/1
+  definfo add_value_info(value, state) do
+    {:noreply, [value | state]}
+  end
+
+  # def whereis(id) do
+  #   Registry.lookup(:min_delegate_app, id)
+  # end
+end

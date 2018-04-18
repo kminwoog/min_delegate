@@ -1,6 +1,20 @@
 defmodule MinDelegate do
   @moduledoc """
-  Documentation for MinDelegate.
+  This MinDelegate module
+  helps to define the client APIs and the server callbacks of GenServer.
+
+  #### `@alias` attribute
+
+    Use `@alias` attribute to specify another name, not `state`
+
+      defmodule Arithmetic do
+        @alias data
+        defcast add_op(value1, value2, data) do
+          data = put_in(data[:add], value1 + value2)
+          {:reply, data.add, data}
+        end
+      end
+
   """
 
   @doc false
@@ -24,6 +38,28 @@ defmodule MinDelegate do
     end
   end
 
+  @doc """
+  Macro defines the client API and the Callback API of GenServer.
+
+  The following `defcall` macro defines
+    `GenServer.call/3` wrapper for Client and
+    `GenServer.handl_call/3` server callback to receive `GenServer.call/3` message.
+
+  `state` argument specify current state of GenServer.
+  The format that returns `defcall` macro must be the same format that
+    returns `GenServer.handl_call/3` callback.
+
+  ## Examples
+      defmodule Arithmetic do
+        defcast add_op(value1, value2, state) do
+          state = put_in(state[:add], value1 + value2)
+          {:reply, state.add, state}
+        end
+      end
+
+      iex> Arithmetic.add_op(pid, value1 = 1, value2 = 3)
+
+  """
   defmacro defcall(message, _var \\ quote(do: _), do: contents) do
     {func, args} = Macro.decompose_call(message)
     args = Macro.escape(args)
@@ -47,6 +83,27 @@ defmodule MinDelegate do
     end
   end
 
+  @doc """
+  Macro defines the client API and the Callback API of GenServer.
+
+  The following `defcast` macro defines
+    `GenServer.cast/2` wrapper for Client and
+    `GenServer.handl_cast/2` server callback to receive `GenServer.cast/2` message
+
+  `state` argument specify current state of GenServer.
+  The format that returns `defcast` macro must be the same format that
+    returns `GenServer.handl_cast/2` callback.
+
+  ## Examples
+      defmodule Arithmetic do
+        defcast minus_op(value1, value2, state) do
+          state = put_in(state[:minus], value1 - value2)
+          {:noreply, state}
+        end
+      end
+
+      iex> Arithmetic.minus_op(pid, value1 = 1, value2 = 3)
+  """
   defmacro defcast(message, _var \\ quote(do: _), do: contents) do
     {func, args} = Macro.decompose_call(message)
     args = Macro.escape(args)
@@ -70,6 +127,28 @@ defmodule MinDelegate do
     end
   end
 
+  @doc """
+  Macro defines the client API and the Callback API of GenServer.
+
+  The following `definfo` macro defines
+    `Kernel.send/2` and `Process.send_after/4` wrapper for Client and
+    `GenServer.handl_info/2` server callback to receive `info` message
+
+  `state` argument specify current state of GenServer.
+  The format that returns `definfo` macro must be the same format that
+    returns `GenServer.handl_info/2` callback.
+
+  ## Examples
+      defmodule Arithmetic do
+        definfo multiple_op(value1, value2, state) do
+          state = put_in(state[:multiple], value1 * value2)
+          {:noreply, state}
+        end
+      end
+
+      iex> Arithmetic.multiple_op(pid, value1 = 1, value2 = 3)
+      iex> Arithmetic.multiple_op(pid, value1 = 1, value2 = 3, delay = 3000)
+  """
   defmacro definfo(message, _var \\ quote(do: _), do: contents) do
     {func, args} = Macro.decompose_call(message)
     args = Macro.escape(args)
@@ -84,6 +163,7 @@ defmodule MinDelegate do
 
       def unquote(func)(unquote(pid), unquote_splicing(args), delay \\ 0) do
         msg = {unquote(func), unquote_splicing(args)}
+
         if delay > 0 do
           Process.send_after(unquote(pid), msg, delay)
         else
@@ -97,6 +177,7 @@ defmodule MinDelegate do
     end
   end
 
+  @doc false
   def get_attribute(mod, key, default, delete?) do
     attr =
       if delete? do
@@ -111,43 +192,4 @@ defmodule MinDelegate do
       default
     end
   end
-end
-
-defmodule MinDelegateQ do
-  @moduledoc """
-  Simple queue for testing min_delegate
-  """
-
-  use GenServer
-  use MinDelegate
-
-  ### GenServer Initializations
-  def init(_state), do: {:ok, []}
-
-  def start_link(state \\ []) do
-    GenServer.start_link(__MODULE__, state, name: __MODULE__)
-  end
-
-  @alias :data
-  defcall add_value(value, data) do
-    data = [value | data]
-    {:reply, data, data}
-  end
-
-  defcast add_value_cast(value, state) do
-    {:noreply, [value | state]}
-  end
-
-  defcall count(state) do
-    {:reply, length(state), state}
-  end
-
-  # #@whereis &whereis/1
-  definfo add_value_info(value, state) do
-    { :noreply, [value | state] }
-  end
-
-  # def whereis(id) do
-  #   Registry.lookup(:min_delegate_app, id)
-  # end
 end
