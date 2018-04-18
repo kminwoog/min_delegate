@@ -57,7 +57,7 @@ defmodule MinDelegate do
         end
       end
 
-      iex> Arithmetic.add_op(pid, value1 = 1, value2 = 3)
+      > Arithmetic.add_op(pid, value1 = 1, value2 = 3)
 
   """
   defmacro defcall(message, _var \\ quote(do: _), do: contents) do
@@ -102,7 +102,7 @@ defmodule MinDelegate do
         end
       end
 
-      iex> Arithmetic.minus_op(pid, value1 = 1, value2 = 3)
+      > Arithmetic.minus_op(pid, value1 = 1, value2 = 3)
   """
   defmacro defcast(message, _var \\ quote(do: _), do: contents) do
     {func, args} = Macro.decompose_call(message)
@@ -146,8 +146,8 @@ defmodule MinDelegate do
         end
       end
 
-      iex> Arithmetic.multiple_op(pid, value1 = 1, value2 = 3)
-      iex> Arithmetic.multiple_op(pid, value1 = 1, value2 = 3, delay = 3000)
+      > Arithmetic.multiple_op(pid, value1 = 1, value2 = 3)
+      > Arithmetic.multiple_op(pid, value1 = 1, value2 = 3, delay = 3000)
   """
   defmacro definfo(message, _var \\ quote(do: _), do: contents) do
     {func, args} = Macro.decompose_call(message)
