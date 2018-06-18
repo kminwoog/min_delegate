@@ -38,6 +38,64 @@ defmodule MinDelegate do
     end
   end
 
+  defmacro expand_func(message, type, contents) do
+    {func, args} = Macro.decompose_call(message)
+    args = Macro.escape(args)
+    func = Macro.escape(func)
+    pid = Macro.escape(Macro.var(:pid, nil))
+    contents = Macro.escape(contents)
+
+    state =
+      quote do
+        state_name = MinDelegate.get_attribute(__MODULE__, :alias, :state, true)
+        args = Enum.filter(args, &(!match?({^state_name, _, _}, &1)))
+        Macro.var(state_name, nil)
+      end
+
+    case type do
+      :call ->
+        quote bind_quoted: [pid: pid, args: args, func: func, contents: contents, state: state] do
+          def unquote(func)(unquote(pid), unquote_splicing(args)) do
+            msg = {unquote(func), unquote_splicing(args)}
+            GenServer.call(unquote(pid), msg)
+          end
+
+          def handle_call({unquote(func), unquote_splicing(args)}, _from, unquote(state)) do
+            unquote(contents)
+          end
+        end
+
+      :cast ->
+        quote bind_quoted: [pid: pid, args: args, func: func, contents: contents, state: state] do
+          def unquote(func)(unquote(pid), unquote_splicing(args)) do
+            msg = {unquote(func), unquote_splicing(args)}
+            GenServer.cast(unquote(pid), msg)
+          end
+
+          def handle_cast({unquote(func), unquote_splicing(args)}, unquote(state)) do
+            unquote(contents)
+          end
+        end
+
+      :info ->
+        quote bind_quoted: [pid: pid, args: args, func: func, contents: contents, state: state] do
+          def unquote(func)(unquote(pid), unquote_splicing(args), delay \\ 0) do
+            msg = {unquote(func), unquote_splicing(args)}
+
+            if delay > 0 do
+              Process.send_after(unquote(pid), msg, delay)
+            else
+              send(unquote(pid), msg)
+            end
+          end
+
+          def handle_info({unquote(func), unquote_splicing(args)}, unquote(state)) do
+            unquote(contents)
+          end
+        end
+    end
+  end
+
   @doc """
   Macro defines the client API and the Callback API of GenServer.
 
@@ -61,25 +119,8 @@ defmodule MinDelegate do
 
   """
   defmacro defcall(message, _var \\ quote(do: _), do: contents) do
-    {func, args} = Macro.decompose_call(message)
-    args = Macro.escape(args)
-    func = Macro.escape(func)
-    pid = Macro.escape(Macro.var(:pid, nil))
-    contents = Macro.escape(contents)
-
-    quote bind_quoted: [pid: pid, args: args, func: func, contents: contents] do
-      state_name = MinDelegate.get_attribute(__MODULE__, :alias, :state, true)
-      args = Enum.filter(args, &(!match?({^state_name, _, _}, &1)))
-      state = Macro.var(state_name, nil)
-
-      def unquote(func)(unquote(pid), unquote_splicing(args)) do
-        msg = {unquote(func), unquote_splicing(args)}
-        GenServer.call(unquote(pid), msg)
-      end
-
-      def handle_call({unquote(func), unquote_splicing(args)}, _from, unquote(state)) do
-        unquote(contents)
-      end
+    quote do
+      expand_func(unquote(message), :call, unquote(contents))
     end
   end
 
@@ -105,25 +146,8 @@ defmodule MinDelegate do
       > Arithmetic.minus_op(pid, value1 = 1, value2 = 3)
   """
   defmacro defcast(message, _var \\ quote(do: _), do: contents) do
-    {func, args} = Macro.decompose_call(message)
-    args = Macro.escape(args)
-    func = Macro.escape(func)
-    pid = Macro.escape(Macro.var(:pid, nil))
-    contents = Macro.escape(contents)
-
-    quote bind_quoted: [pid: pid, args: args, func: func, contents: contents] do
-      state_name = MinDelegate.get_attribute(__MODULE__, :alias, :state, true)
-      args = Enum.filter(args, &(!match?({^state_name, _, _}, &1)))
-      state = Macro.var(state_name, nil)
-
-      def unquote(func)(unquote(pid), unquote_splicing(args)) do
-        msg = {unquote(func), unquote_splicing(args)}
-        GenServer.cast(unquote(pid), msg)
-      end
-
-      def handle_cast({unquote(func), unquote_splicing(args)}, unquote(state)) do
-        unquote(contents)
-      end
+    quote do
+      expand_func(unquote(message), :cast, unquote(contents))
     end
   end
 
@@ -150,30 +174,8 @@ defmodule MinDelegate do
       > Arithmetic.multiple_op(pid, value1 = 1, value2 = 3, delay = 3000)
   """
   defmacro definfo(message, _var \\ quote(do: _), do: contents) do
-    {func, args} = Macro.decompose_call(message)
-    args = Macro.escape(args)
-    func = Macro.escape(func)
-    pid = Macro.escape(Macro.var(:pid, nil))
-    contents = Macro.escape(contents)
-
-    quote bind_quoted: [pid: pid, args: args, func: func, contents: contents] do
-      state_name = MinDelegate.get_attribute(__MODULE__, :alias, :state, true)
-      args = Enum.filter(args, &(!match?({^state_name, _, _}, &1)))
-      state = Macro.var(state_name, nil)
-
-      def unquote(func)(unquote(pid), unquote_splicing(args), delay \\ 0) do
-        msg = {unquote(func), unquote_splicing(args)}
-
-        if delay > 0 do
-          Process.send_after(unquote(pid), msg, delay)
-        else
-          send(unquote(pid), msg)
-        end
-      end
-
-      def handle_info({unquote(func), unquote_splicing(args)}, unquote(state)) do
-        unquote(contents)
-      end
+    quote do
+      expand_func(unquote(message), :info, unquote(contents))
     end
   end
 
